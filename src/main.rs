@@ -1,6 +1,7 @@
 use std::io::Read;
 
 mod day_01;
+mod day_02;
 
 fn read_input() -> String {
     let mut input = String::new();
@@ -15,7 +16,7 @@ fn read_input() -> String {
 fn run_code(day: i8, part: i8) {
     match day {
         1 => day_01::run_part(read_input(), part),
-        2 => println!("Running code for day {} part {}", day, part),
+        2 => day_02::run_part(read_input(), part),
         3 => println!("Running code for day {} part {}", day, part),
         4 => println!("Running code for day {} part {}", day, part),
         5 => println!("Running code for day {} part {}", day, part),
