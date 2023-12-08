@@ -2,6 +2,7 @@ use std::io::Read;
 
 mod day_01;
 mod day_02;
+mod day_03;
 
 fn read_input() -> String {
     let mut input = String::new();
@@ -17,7 +18,7 @@ fn run_code(day: i8, part: i8) {
     match day {
         1 => day_01::run_part(read_input(), part),
         2 => day_02::run_part(read_input(), part),
-        3 => println!("day {} part {}: not implemented yet...", day, part),
+        3 => day_03::run_part(read_input(), part),
         4 => println!("day {} part {}: not implemented yet...", day, part),
         5 => println!("day {} part {}: not implemented yet...", day, part),
         6 => println!("day {} part {}: not implemented yet...", day, part),
