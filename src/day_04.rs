@@ -1,5 +1,3 @@
-use std::sync::PoisonError;
-
 pub fn run_part(input: String, part: i8) {
     println!("==================================================");
     println!("====== Day 04         ============================");
@@ -90,30 +88,25 @@ fn part2(input: String) {
         (numbers_you_have, winning_numbers) = get_numbers(line);
 
         let mut points = 0;
-        println!("{}", line);
 
         for n in numbers_you_have {
             if winning_numbers.contains(&n) {
-                println!("\twinning number: {}", n);
                 points += 1;
             }
         }
 
         for e in i..i+points {
-            println!("adding card {}", e + 1);
             if e < card_count.len() {
-                card_count[e + 1] = card_count[e + 1] + 1;
+                card_count[e + 1] = card_count[e + 1] + card_count[i];
             }
         }
-
-        println!("\tadding point={}", points);
-        sum += points;
     }
 
     let mut i = 1;
     for c in card_count {
         println!("card {} [{}]", i, c);
         i = i + 1;
+        sum += c;
     }
 
     println!("===> sum is {}", sum);
