@@ -88,4 +88,23 @@ fn part2(input: String) {
     println!("==================================================");
     println!("=== Input: ===");
     println!("{}", input);
+
+    let mut sum = 0;
+
+    for line in input.lines() {
+        let game_number;
+        let game_rounds;
+        let red_max;
+        let blue_max;
+        let green_max;
+        let power;
+        (game_number, game_rounds) = get_number_and_rounds(line);
+        (red_max, green_max, blue_max) = get_max_numbers(game_rounds);
+
+        power = red_max * green_max * blue_max;
+
+        println!("adding game number {} with power {}", game_number, power);
+        sum += power;
+    }
+    println!("sum is {}", sum);
 }
