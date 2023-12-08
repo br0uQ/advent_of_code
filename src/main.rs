@@ -4,6 +4,7 @@ mod day_01;
 mod day_02;
 mod day_03;
 mod day_04;
+mod day_05;
 
 fn read_input() -> String {
     let mut input = String::new();
@@ -21,7 +22,7 @@ fn run_code(day: i8, part: i8) {
         2 => day_02::run_part(read_input(), part),
         3 => day_03::run_part(read_input(), part),
         4 => day_04::run_part(read_input(), part),
-        5 => println!("day {} part {}: not implemented yet...", day, part),
+        5 => day_05::run_part(read_input(), part),
         6 => println!("day {} part {}: not implemented yet...", day, part),
         7 => println!("day {} part {}: not implemented yet...", day, part),
         8 => println!("day {} part {}: not implemented yet...", day, part),
