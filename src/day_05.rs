@@ -51,6 +51,22 @@ impl Mapper {
     }
 }
 
+struct FullMap {
+    maps: Vec<Mapper>,
+}
+
+impl FullMap {
+    pub fn get_loc_for_seed(&mut self, seed: u64) -> u64 {
+        let mut key = seed;
+        let count = self.maps.len();
+        for i in 0..count {
+            key = self.maps[i].get_value(key);
+        }
+
+        return key;
+    }
+}
+
 enum MapNames {
     SeedToSoil,
     SoilToFertilizer,
@@ -102,38 +118,31 @@ fn get_loc_for_seed(seed: u64, maps: &mut Vec<Mapper>) -> u64 {
     let mut value;
     for m in maps {
         value = m.get_value(key);
-        print!("{} -> {}, ", key, value);
+        //print!("{} -> {}, ", key, value);
         key = value;
     }
-    println!("");
+    //println!("");
 
     return key;
 }
 
-fn part1(input: String) {
-    println!("==================================================");
-    println!("====== Part 1 ====================================");
-    println!("==================================================");
-    println!("=== Input: ===");
-    println!("{}", input);
-
+fn parse_seeds_and_maps(input: String) -> (Vec<Mapper>, Vec<u64>) {
+    let seeds;
+    let mut map;
+    let mut maps: Vec<Mapper> = Vec::new();
     let mut split = input.split("\n\n");
 
     if split.count() != 8 {
         println!("ERROR seams a map or the seeds are missing", );
-        return;
     }
 
     split = input.split("\n\n");
 
-    let seeds = get_seeds(split.next().unwrap());
+    seeds = get_seeds(split.next().unwrap());
     println!("seeds: {:?}", seeds);
     println!("");
 
     println!("=== create maps");
-    let mut map;
-    let mut maps: Vec<Mapper> = Vec::new();
-
     map = Mapper::new(MapNames::SeedToSoil);
     map.parse_map(split.next().unwrap());
     maps.push(map);
@@ -155,7 +164,22 @@ fn part1(input: String) {
     map = Mapper::new(MapNames::HumidityToLocation);
     map.parse_map(split.next().unwrap());
     maps.push(map);
+
+    return (maps, seeds);
+}
+
+fn part1(input: String) {
+    println!("==================================================");
+    println!("====== Part 1 ====================================");
+    println!("==================================================");
+    println!("=== Input: ===");
+    println!("{}", input);
     println!("");
+
+    let seeds;
+    let mut maps;
+
+    (maps, seeds) = parse_seeds_and_maps(input);
 
     println!("=== parse locations");
     let mut locations: Vec<u64> = Vec::new();
@@ -175,7 +199,35 @@ fn part2(input: String) {
     println!("=== Input: ===");
     println!("{}", input);
 
-    let mut _sum = 0;
+    let seeds;
+    let maps;
 
-    println!("===> sum is {}", _sum);
+    (maps, seeds) = parse_seeds_and_maps(input);
+
+    let mut full_map = FullMap {
+        maps: maps,
+    };
+
+    println!("=== parse locations");
+    let mut seed: u64;
+    let mut location: u64;
+    let mut location_final = full_map.get_loc_for_seed(seeds[0]);
+    println!("parsing seed_array[{}]", seeds.len());
+    for i in 0..seeds.len() {
+        if (i%2) == 0 {
+            println!("parsing seeds[{}] beginning with {}", seeds[i+1], seeds[i]);
+            for e in 0..seeds[i+1] {
+                //println!("{:>20}/{}", e, seeds[i+1]);
+                seed = seeds[i] + e;
+                location = full_map.get_loc_for_seed(seed);
+                if location < location_final {
+                    location_final = location;
+                }
+            }
+        }
+    }
+    println!("");
+
+    //locations.sort();
+    println!("lowest location is: {}", location_final);
 }
