@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 struct Mapper {
     name: MapNames,
     map: Vec<[u64; 3]>,
@@ -5,10 +7,19 @@ struct Mapper {
 
 impl Mapper {
     pub fn get_value(&mut self, key: u64) -> u64 {
+        let last = self.map.last().unwrap();
+        let first = self.map.first().unwrap();
+        if key > last[0] + last[2] - 1 {
+            return key;
+        } else if key < first[0] {
+            return key;
+        }
         for m in &self.map {
-            if key >= m[1] && key <= m[1] + m[2] {
-                let diff = key - m[1];
-                return m[0] + diff;
+            if key < m[0] {
+                return key;
+            }
+            if key < (m[0] + m[2] - 1) {
+                return m[1] + key - m[0];
             }
         }
         return key;
@@ -27,17 +38,14 @@ impl Mapper {
                     continue;
                 }
 
-                for (e, n) in line.split(' ').enumerate() {
-                    match n.parse::<u64>() {
-                        Ok(parsed) => {
-                            vector[e] = parsed;
-                        },
-                        Err(_) => {},
-                    }
-                }
+                let mut split = line.split(' ');
+                vector[1] = split.next().unwrap().parse::<u64>().unwrap();
+                vector[0] = split.next().unwrap().parse::<u64>().unwrap();
+                vector[2] = split.next().unwrap().parse::<u64>().unwrap();
 
                 self.map.push(vector);
             }
+            self.map.sort();
             for m in &self.map {
                 println!("{:?}", m);
             }
@@ -58,10 +66,13 @@ struct FullMap {
 impl FullMap {
     pub fn get_loc_for_seed(&mut self, seed: u64) -> u64 {
         let mut key = seed;
-        let count = self.maps.len();
-        for i in 0..count {
-            key = self.maps[i].get_value(key);
+        //let count = self.maps.len();
+        for map in &mut self.maps {
+            key = map.get_value(key);
         }
+        //for i in 0..count {
+        //    key = self.maps[i].get_value(key);
+        //}
 
         return key;
     }
@@ -118,10 +129,8 @@ fn get_loc_for_seed(seed: u64, maps: &mut Vec<Mapper>) -> u64 {
     let mut value;
     for m in maps {
         value = m.get_value(key);
-        //print!("{} -> {}, ", key, value);
         key = value;
     }
-    //println!("");
 
     return key;
 }
@@ -209,21 +218,23 @@ fn part2(input: String) {
     };
 
     println!("=== parse locations");
-    let mut seed: u64;
     let mut location: u64;
     let mut location_final = full_map.get_loc_for_seed(seeds[0]);
     println!("parsing seed_array[{}]", seeds.len());
     for i in 0..seeds.len() {
         if (i%2) == 0 {
             println!("parsing seeds[{}] beginning with {}", seeds[i+1], seeds[i]);
+            let now = Instant::now();
             for e in 0..seeds[i+1] {
-                //println!("{:>20}/{}", e, seeds[i+1]);
-                seed = seeds[i] + e;
-                location = full_map.get_loc_for_seed(seed);
+                location = full_map.get_loc_for_seed(seeds[i] + e);
+
                 if location < location_final {
                     location_final = location;
                 }
             }
+            let elapsed = now.elapsed();
+            println!("took: {:.2?}", elapsed);
+            println!("lowest location is {}", location_final);
         }
     }
     println!("");
