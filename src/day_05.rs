@@ -1,4 +1,77 @@
-use std::collections::HashMap;
+struct Mapper {
+    name: MapNames,
+    map: Vec<[u64; 3]>,
+}
+
+impl Mapper {
+    pub fn get_value(&mut self, key: u64) -> u64 {
+        for m in &self.map {
+            if key >= m[1] && key <= m[1] + m[2] {
+                let diff = key - m[1];
+                return m[0] + diff;
+            }
+        }
+        return key;
+    }
+
+    pub fn parse_map(&mut self, text: &str) {
+        let mut i = text.split(':');
+        let map_name_str = get_mapname_str(&self.name);
+
+        println!("=== get map for: {}", map_name_str);
+
+        if i.next().unwrap() == map_name_str {
+            for line in i.next().unwrap().lines() {
+                let mut vector: [u64; 3] = [0; 3];
+                if line == "" {
+                    continue;
+                }
+
+                for (e, n) in line.split(' ').enumerate() {
+                    match n.parse::<u64>() {
+                        Ok(parsed) => {
+                            vector[e] = parsed;
+                        },
+                        Err(_) => {},
+                    }
+                }
+
+                self.map.push(vector);
+            }
+            for m in &self.map {
+                println!("{:?}", m);
+            }
+        } else {
+            println!("ERROR: this is no {}", map_name_str);
+        }
+    }
+
+    pub fn new(name: MapNames) -> Mapper {
+        Mapper { name: name, map: Vec::new() }
+    }
+}
+
+enum MapNames {
+    SeedToSoil,
+    SoilToFertilizer,
+    FertilizerToWater,
+    WaterToLight,
+    LightToTemperature,
+    TemperatureToHumidity,
+    HumidityToLocation,
+}
+
+fn get_mapname_str(map_name: &MapNames) -> String {
+    match map_name {
+        MapNames::SeedToSoil => String::from("seed-to-soil map"),
+        MapNames::SoilToFertilizer => String::from("soil-to-fertilizer map"),
+        MapNames::FertilizerToWater => String::from("fertilizer-to-water map"),
+        MapNames::WaterToLight => String::from("water-to-light map"),
+        MapNames::LightToTemperature => String::from("light-to-temperature map"),
+        MapNames::TemperatureToHumidity => String::from("temperature-to-humidity map"),
+        MapNames::HumidityToLocation => String::from("humidity-to-location map"),
+    }
+}
 
 pub fn run_part(input: String, part: i8) {
     println!("==================================================");
@@ -24,89 +97,17 @@ fn get_seeds(seeds_string: &str) -> Vec<u64> {
     return ret;
 }
 
-fn create_hashmap(text: &str) -> HashMap<u64, u64> {
-    let mut ret: HashMap<u64, u64> = HashMap::new();
-
-    for line in text.lines() {
-        let mut vector: Vec<u64> = Vec::new();
-        if line == "" {
-            continue;
-        }
-
-        for n in line.split(' ') {
-            match n.parse::<u64>() {
-                Ok(parsed) => {
-                    vector.push(parsed);
-                },
-                Err(_) => {},
-            }
-        }
-
-        for e in 0..vector[2] {
-            ret.insert(vector[1] + e, vector[0] + e);
-        }
+fn get_loc_for_seed(seed: u64, maps: &mut Vec<Mapper>) -> u64 {
+    let mut key = seed;
+    let mut value;
+    for m in maps {
+        value = m.get_value(key);
+        print!("{} -> {}, ", key, value);
+        key = value;
     }
+    println!("");
 
-    return ret;
-}
-
-fn get_map_for(map_name: &str, seed_to_soil_string: &str) -> HashMap<u64, u64> {
-    let mut i = seed_to_soil_string.split(':');
-
-    println!("=== get map for: {}", map_name);
-
-    if i.next().unwrap() == map_name {
-        return create_hashmap(i.next().unwrap());
-    }
-
-    println!("ERROR: this is no {}", map_name);
-    return HashMap::new();
-}
-
-struct Maps {
-    seed_to_soil: HashMap<u64, u64>,
-    soil_to_fertilizer: HashMap<u64, u64>,
-    fertilizer_to_water: HashMap<u64, u64>,
-    water_to_light: HashMap<u64, u64>,
-    light_to_temperature: HashMap<u64, u64>,
-    temperature_to_humidity: HashMap<u64, u64>,
-    humidity_to_location: HashMap<u64, u64>,
-}
-
-fn get_loc_for_seed(seed: u64, maps: &Maps) -> u64 {
-    let soil = match maps.seed_to_soil.get(&seed) {
-        Some(s) => *s,
-        None => seed,
-    };
-    let fertilizer = match maps.soil_to_fertilizer.get(&soil) {
-        Some(s) => *s,
-        None => soil,
-    };
-    let water = match maps.fertilizer_to_water.get(&fertilizer) {
-        Some(s) => *s,
-        None => fertilizer,
-    };
-    let light = match maps.water_to_light.get(&water) {
-        Some(s) => *s,
-        None => water,
-    };
-    let temp = match maps.light_to_temperature.get(&light) {
-        Some(s) => *s,
-        None => light,
-    };
-    let humid = match maps.temperature_to_humidity.get(&temp) {
-        Some(s) => *s,
-        None => temp,
-    };
-    let loc = match maps.humidity_to_location.get(&humid) {
-        Some(s) => *s,
-        None => humid,
-    };
-
-    println!("Seed {}, soil {}, fertilizer {}, water {}, light {}, temperature {}, humidity {}, location {}",
-             seed, soil, fertilizer, water, light, temp, humid, loc);
-
-    return loc;
+    return key;
 }
 
 fn part1(input: String) {
@@ -130,21 +131,36 @@ fn part1(input: String) {
     println!("");
 
     println!("=== create maps");
-    let maps: Maps = Maps {
-        seed_to_soil: get_map_for("seed-to-soil map", split.next().unwrap()),
-        soil_to_fertilizer: get_map_for("soil-to-fertilizer map", split.next().unwrap()),
-        fertilizer_to_water: get_map_for("fertilizer-to-water map", split.next().unwrap()),
-        water_to_light: get_map_for("water-to-light map", split.next().unwrap()),
-        light_to_temperature: get_map_for("light-to-temperature map", split.next().unwrap()),
-        temperature_to_humidity: get_map_for("temperature-to-humidity map", split.next().unwrap()),
-        humidity_to_location: get_map_for("humidity-to-location map", split.next().unwrap())
-    };
+    let mut map;
+    let mut maps: Vec<Mapper> = Vec::new();
+
+    map = Mapper::new(MapNames::SeedToSoil);
+    map.parse_map(split.next().unwrap());
+    maps.push(map);
+    map = Mapper::new(MapNames::SoilToFertilizer);
+    map.parse_map(split.next().unwrap());
+    maps.push(map);
+    map = Mapper::new(MapNames::FertilizerToWater);
+    map.parse_map(split.next().unwrap());
+    maps.push(map);
+    map = Mapper::new(MapNames::WaterToLight);
+    map.parse_map(split.next().unwrap());
+    maps.push(map);
+    map = Mapper::new(MapNames::LightToTemperature);
+    map.parse_map(split.next().unwrap());
+    maps.push(map);
+    map = Mapper::new(MapNames::TemperatureToHumidity);
+    map.parse_map(split.next().unwrap());
+    maps.push(map);
+    map = Mapper::new(MapNames::HumidityToLocation);
+    map.parse_map(split.next().unwrap());
+    maps.push(map);
     println!("");
 
     println!("=== parse locations");
     let mut locations: Vec<u64> = Vec::new();
     for seed in seeds {
-        locations.push(get_loc_for_seed(seed, &maps));
+        locations.push(get_loc_for_seed(seed, &mut maps));
     }
     println!("");
 
